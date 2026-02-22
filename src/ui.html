@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Inter, -apple-system, sans-serif; font-size: 12px; color: #333; background: #fff; }
+    .container { padding: 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh; }
+    .title { font-size: 14px; font-weight: 600; }
+    .btn { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; }
+    .btn-primary { background: #0d99ff; color: white; }
+    .btn-primary:hover { background: #0b85e0; }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; }
+    .checkbox-row input { width: 16px; height: 16px; }
+    .layer-list { flex: 1; overflow-y: auto; border: 1px solid #e5e5e5; border-radius: 6px; }
+    .layer-item { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .layer-item:hover { background: #f8f8f8; }
+    .layer-item.selected { background: #e8f4ff; }
+    .layer-type { font-size: 10px; color: #888; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
+    .layer-name { flex: 1; }
+    .annotation-input { width: 100%; padding: 8px; border: 1px solid #e5e5e5; border-radius: 4px; font-size: 12px; margin-top: 4px; }
+    .empty-state { padding: 32px; text-align: center; color: #888; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal { background: white; border-radius: 8px; padding: 16px; width: 100%; max-height: 80vh; display: flex; flex-direction: column; gap: 12px; }
+    .modal-title { font-weight: 600; font-size: 14px; }
+    .prompt-output { flex: 1; padding: 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 11px; line-height: 1.5; overflow-y: auto; white-space: pre-wrap; background: #fafafa; min-height: 200px; max-height: 300px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .hidden { display: none; }
+    .history-section { border-top: 1px solid #e5e5e5; padding-top: 12px; }
+    .history-title { font-weight: 600; margin-bottom: 8px; }
+    .history-item { padding: 8px; background: #f8f8f8; border-radius: 4px; margin-bottom: 4px; cursor: pointer; font-size: 11px; }
+    .history-item:hover { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <div class="title">Prompt Generator</div>
+    </div>
+    
+    <button class="btn btn-primary" id="scanBtn">Scan Selected Frame</button>
+    
+    <label class="checkbox-row">
+      <input type="checkbox" id="firstPrompt">
+      First prompt (include global styles setup)
+    </label>
+    
+    <div class="layer-list" id="layerList">
+      <div class="empty-state">Select a frame in Figma and click "Scan Selected Frame"</div>
+    </div>
+    
+    <button class="btn btn-primary hidden" id="generateBtn">Generate Prompt</button>
+    
+    <div class="history-section hidden" id="historySection">
+      <div class="history-title">Recent Prompts</div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+  
+  <div class="modal-overlay hidden" id="modal">
+    <div class="modal">
+      <div class="modal-title">Generated Prompt</div>
+      <div class="prompt-output" id="promptOutput"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="closeBtn">Close</button>
+        <button class="btn btn-primary" id="copyBtn">Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var layerTree = null;
+    var annotations = {};
+    var selectedLayers = {};
+    var history = [];
+
+    // Load history
+    try {
+      var saved = localStorage.getItem('prompt-history');
+      if (saved) history = JSON.parse(saved);
+      renderHistory();
+    } catch(e) {}
+
+    // Elements
+    var scanBtn = document.getElementById('scanBtn');
+    var generateBtn = document.getElementById('generateBtn');
+    var layerListEl = document.getElementById('layerList');
+    var modal = document.getElementById('modal');
+    var promptOutput = document.getElementById('promptOutput');
+    var closeBtn = document.getElementById('closeBtn');
+    var copyBtn = document.getElementById('copyBtn');
+    var firstPromptCheckbox = document.getElementById('firstPrompt');
+
+    // Scan button
+    scanBtn.onclick = function() {
+      parent.postMessage({ pluginMessage: { type: 'scan-selection' } }, '*');
+    };
+
+    // Generate button
+    generateBtn.onclick = function() {
+      if (!layerTree) return;
+      var prompt = generatePrompt();
+      promptOutput.textContent = prompt;
+      modal.classList.remove('hidden');
+      saveToHistory(layerTree.name, prompt);
+    };
+
+    // Close modal
+    closeBtn.onclick = function() {
+      modal.classList.add('hidden');
+    };
+
+    // Copy button
+    copyBtn.onclick = function() {
+      var text = promptOutput.textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        parent.postMessage({ pluginMessage: { type: 'notify', message: 'Copied to clipboard!' } }, '*');
+      });
+    };
+
+    // Listen for messages from Figma
+    window.onmessage = function(event) {
+      var msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'layer-tree') {
+        layerTree = msg.data;
+        annotations = {};
+        selectedLayers = {};
+        renderLayers();
+        generateBtn.classList.remove('hidden');
+      }
+
+      if (msg.type === 'error') {
+        alert(msg.message);
+      }
+    };
+
+    function renderLayers() {
+      if (!layerTree) {
+        layerListEl.innerHTML = '<div class="empty-state">Select a frame in Figma and click "Scan Selected Frame"</div>';
+        return;
+      }
+      layerListEl.innerHTML = '';
+      renderLayerItem(layerTree, layerListEl);
+    }
+
+    function renderLayerItem(layer, container) {
+      var div = document.createElement('div');
+      
+      var item = document.createElement('div');
+      item.className = 'layer-item' + (selectedLayers[layer.id] ? ' selected' : '');
+      item.style.paddingLeft = (layer.depth * 16 + 12) + 'px';
+      
+      var typeSpan = document.createElement('span');
+      typeSpan.className = 'layer-type';
+      typeSpan.textContent = layer.type;
+      
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'layer-name';
+      nameSpan.textContent = layer.name;
+      
+      item.appendChild(typeSpan);
+      item.appendChild(nameSpan);
+      
+      item.onclick = function() {
+        selectedLayers[layer.id] = !selectedLayers[layer.id];
+        renderLayers();
+      };
+      
+      div.appendChild(item);
+      
+      if (selectedLayers[layer.id]) {
+        var inputDiv = document.createElement('div');
+        inputDiv.style.paddingLeft = (layer.depth * 16 + 12) + 'px';
+        inputDiv.style.paddingRight = '12px';
+        inputDiv.style.paddingBottom = '8px';
+        
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'annotation-input';
+        input.placeholder = 'Add note for this element...';
+        input.value = annotations[layer.id] || '';
+        input.onclick = function(e) { e.stopPropagation(); };
+        input.onchange = function(e) {
+          annotations[layer.id] = e.target.value;
+        };
+        
+        inputDiv.appendChild(input);
+        div.appendChild(inputDiv);
+      }
+      
+      container.appendChild(div);
+      
+      if (layer.children) {
+        for (var i = 0; i < layer.children.length; i++) {
+          renderLayerItem(layer.children[i], container);
+        }
+      }
+    }
+
+    function flattenLayers(layer, result) {
+      result = result || [];
+      result.push(layer);
+      if (layer.children) {
+        for (var i = 0; i < layer.children.length; i++) {
+          flattenLayers(layer.children[i], result);
+        }
+      }
+      return result;
+    }
+
+    function generatePrompt() {
+      var layers = flattenLayers(layerTree);
+      var prompt = '';
+
+      if (firstPromptCheckbox.checked) {
+        prompt += '## Global Styles Setup\n';
+        prompt += 'Before building this component, set up the following global styles:\n';
+        prompt += '- Create a consistent color palette based on the colors used below\n';
+        prompt += '- Set up typography scale based on the font sizes mentioned\n';
+        prompt += '- Define spacing tokens for consistent padding/margins\n\n';
+      }
+
+      prompt += '## Screen: ' + layerTree.name + '\n';
+      prompt += 'Dimensions: ' + layerTree.width + 'x' + layerTree.height + 'px\n\n';
+      prompt += '## Structure\n';
+      prompt += 'This screen contains the following elements:\n\n';
+
+      for (var i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        var indent = '';
+        for (var j = 0; j < layer.depth; j++) indent += '  ';
+        
+        var desc = indent + '- **' + layer.name + '** (' + layer.type + ')';
+        
+        if (layer.width && layer.height) {
+          desc += ' - ' + layer.width + 'x' + layer.height + 'px';
+        }
+        
+        if (layer.characters) {
+          desc += ' - Text: "' + layer.characters + '"';
+        }
+        
+        if (layer.fills && layer.fills.length > 0) {
+          for (var k = 0; k < layer.fills.length; k++) {
+            if (layer.fills[k].color) {
+              desc += ' - Color: ' + layer.fills[k].color;
+              break;
+            }
+          }
+        }
+        
+        prompt += desc + '\n';
+        
+        if (annotations[layer.id]) {
+          prompt += indent + '  → Note: ' + annotations[layer.id] + '\n';
+        }
+      }
+
+      var hasAnnotations = false;
+      for (var id in annotations) {
+        if (annotations[id] && annotations[id].trim()) {
+          hasAnnotations = true;
+          break;
+        }
+      }
+      
+      if (hasAnnotations) {
+        prompt += '\n## Special Instructions\n';
+        for (var id in annotations) {
+          if (annotations[id] && annotations[id].trim()) {
+            var layer = layers.find(function(l) { return l.id === id; });
+            if (layer) {
+              prompt += '- **' + layer.name + '**: ' + annotations[id] + '\n';
+            }
+          }
+        }
+      }
+
+      prompt += '\n## Implementation Notes\n';
+      prompt += '- Use semantic HTML elements where appropriate\n';
+      prompt += '- Ensure responsive behavior\n';
+      prompt += '- Follow accessibility best practices\n';
+
+      return prompt;
+    }
+
+    function saveToHistory(name, prompt) {
+      var item = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        frameName: name,
+        prompt: prompt
+      };
+      history.unshift(item);
+      if (history.length > 20) history = history.slice(0, 20);
+      try {
+        localStorage.setItem('prompt-history', JSON.stringify(history));
+      } catch(e) {}
+      renderHistory();
+    }
+
+    function renderHistory() {
+      var section = document.getElementById('historySection');
+      var list = document.getElementById('historyList');
+      
+      if (history.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+      
+      section.classList.remove('hidden');
+      list.innerHTML = '';
+      
+      var shown = history.slice(0, 5);
+      for (var i = 0; i < shown.length; i++) {
+        var item = shown[i];
+        var div = document.createElement('div');
+        div.className = 'history-item';
+        div.textContent = item.frameName + ' - ' + new Date(item.timestamp).toLocaleTimeString();
+        div.onclick = (function(prompt) {
+          return function() {
+            promptOutput.textContent = prompt;
+            modal.classList.remove('hidden');
+          };
+        })(item.prompt);
+        list.appendChild(div);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,18 +1,11 @@
 {
-  "name": "KD Prompt Generator",
-  "id": "1607313229719360913",
+  "name": "Prompt Generator",
+  "id": "prompt-generator-plugin",
   "api": "1.0.0",
-  "main": "code.js",
-  "capabilities": [],
-  "enableProposedApi": false,
-  "documentAccess": "dynamic-page",
-  "editorType": [
-    "figma"
-  ],
-  "ui": "ui.html",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
   "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
+    "allowedDomains": ["https://api.openai.com"]
   }
 }
