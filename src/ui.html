@@ -4,46 +4,66 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Inter, -apple-system, sans-serif; font-size: 12px; color: #333; background: #fff; }
-    .container { padding: 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh; }
+    .container { padding: 16px; display: flex; flex-direction: column; gap: 12px; height: 100vh; }
     .title { font-size: 14px; font-weight: 600; }
     .btn { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; }
     .btn-primary { background: #0d99ff; color: white; }
     .btn-primary:hover { background: #0b85e0; }
     .btn-secondary { background: #f0f0f0; color: #333; }
+    .btn-sm { padding: 6px 12px; font-size: 11px; }
     .checkbox-row { display: flex; align-items: center; gap: 8px; }
-    .checkbox-row input { width: 16px; height: 16px; }
-    .layer-list { flex: 1; overflow-y: auto; border: 1px solid #e5e5e5; border-radius: 6px; }
+    .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; }
+    .ai-row { display: flex; align-items: center; gap: 8px; }
+    .ai-status { flex: 1; font-size: 11px; color: #888; }
+    .ai-status.active { color: #1b8a2e; }
+    .error-summary { font-size: 11px; color: #e53935; cursor: pointer; margin-top: 4px; }
+    .error-summary:hover { text-decoration: underline; }
+    .error-detail { font-size: 10px; color: #999; margin-top: 4px; padding: 8px; background: #fafafa; border-radius: 4px; white-space: pre-wrap; word-break: break-all; max-height: 80px; overflow-y: auto; }
+    .ai-upgrade-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #e8f4ff; border-radius: 6px; margin-top: 4px; }
+    .ai-upgrade-bar span { flex: 1; font-size: 11px; color: #0d99ff; }
+    .free-tier-hint { font-size: 10px; color: #b08000; background: #fff8e1; padding: 6px 8px; border-radius: 4px; line-height: 1.4; }
+    .layer-list { flex: 1; overflow-y: auto; border: 1px solid #e5e5e5; border-radius: 6px; min-height: 120px; }
     .layer-item { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .layer-item:hover { background: #f8f8f8; }
     .layer-item.selected { background: #e8f4ff; }
     .layer-type { font-size: 10px; color: #888; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
-    .layer-name { flex: 1; }
+    .layer-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .annotation-input { width: 100%; padding: 8px; border: 1px solid #e5e5e5; border-radius: 4px; font-size: 12px; margin-top: 4px; }
     .empty-state { padding: 32px; text-align: center; color: #888; }
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .modal { background: white; border-radius: 8px; padding: 16px; width: 100%; max-height: 80vh; display: flex; flex-direction: column; gap: 12px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+    .modal { background: white; border-radius: 8px; padding: 16px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; gap: 12px; }
     .modal-title { font-weight: 600; font-size: 14px; }
-    .prompt-output { flex: 1; padding: 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 11px; line-height: 1.5; overflow-y: auto; white-space: pre-wrap; background: #fafafa; min-height: 200px; max-height: 300px; }
+    .prompt-output { flex: 1; padding: 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 11px; line-height: 1.5; overflow-y: auto; white-space: pre-wrap; background: #fafafa; min-height: 200px; max-height: 350px; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .hidden { display: none; }
     .history-section { border-top: 1px solid #e5e5e5; padding-top: 12px; }
-    .history-title { font-weight: 600; margin-bottom: 8px; }
+    .history-title { font-weight: 600; margin-bottom: 8px; font-size: 11px; }
     .history-item { padding: 8px; background: #f8f8f8; border-radius: 4px; margin-bottom: 4px; cursor: pointer; font-size: 11px; }
     .history-item:hover { background: #f0f0f0; }
+    .loading { opacity: 0.6; pointer-events: none; }
+    .error-text { color: #e53935; font-size: 11px; margin-top: 4px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-label { font-size: 11px; color: #666; }
+    .select-input { padding: 8px; border: 1px solid #e5e5e5; border-radius: 4px; font-size: 12px; background: white; }
+    .hint { font-size: 10px; color: #888; }
+    a { color: #0d99ff; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div>
-      <div class="title">Prompt Generator</div>
-    </div>
+    <div class="title">Prompt Generator</div>
     
     <button class="btn btn-primary" id="scanBtn">Scan Selected Frame</button>
     
-    <label class="checkbox-row">
+    <div class="checkbox-row">
       <input type="checkbox" id="firstPrompt">
-      First prompt (include global styles setup)
-    </label>
+      <label for="firstPrompt">First prompt (include global styles)</label>
+    </div>
+    
+    <div class="ai-row">
+      <span class="ai-status" id="aiStatus">AI: Not configured</span>
+      <button class="btn btn-secondary btn-sm" id="aiSettingsBtn">AI Settings</button>
+    </div>
     
     <div class="layer-list" id="layerList">
       <div class="empty-state">Select a frame in Figma and click "Scan Selected Frame"</div>
@@ -57,29 +77,70 @@
     </div>
   </div>
   
+  <!-- Main Modal -->
   <div class="modal-overlay hidden" id="modal">
     <div class="modal">
       <div class="modal-title">Generated Prompt</div>
       <div class="prompt-output" id="promptOutput"></div>
+      <div id="errorBox" class="hidden">
+        <div class="error-summary" id="errorSummary"></div>
+        <div class="error-detail hidden" id="errorDetail"></div>
+      </div>
+      <div class="ai-upgrade-bar hidden" id="aiUpgradeBar">
+        <span>AI enhanced prompt ready</span>
+        <button class="btn btn-primary btn-sm" id="viewAiBtn">View AI Prompt</button>
+      </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="closeBtn">Close</button>
         <button class="btn btn-primary" id="copyBtn">Copy to Clipboard</button>
       </div>
     </div>
   </div>
+  
+  <!-- API Settings Modal -->
+  <div class="modal-overlay hidden" id="apiModal">
+    <div class="modal" style="max-width: 380px;">
+      <div class="modal-title">AI Settings</div>
+      
+      <div class="form-group">
+        <label class="form-label">Provider</label>
+        <select id="providerSelect" class="select-input">
+          <option value="google">Google Gemini (Free)</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic Claude</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <input type="password" id="apiKeyInput" class="annotation-input" placeholder="Paste your API key...">
+        <div class="hint" id="apiHint">
+          Get free key: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>
+        </div>
+      </div>
+      
+      <div class="free-tier-hint">Free tier: ~15 requests/min. If rate limited, the plugin retries automatically.</div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="removeKeyBtn" style="margin-right:auto;">Remove Key</button>
+        <button class="btn btn-secondary" id="cancelApiBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveApiBtn">Save</button>
+      </div>
+    </div>
+  </div>
 
   <script>
+    // State
     var layerTree = null;
     var annotations = {};
     var selectedLayers = {};
-    var history = [];
+    var promptHistory = [];
+    var apiSettings = { provider: 'google', apiKey: '' };
+    var responseCache = {};
+    var pendingAiPrompt = null;
 
-    // Load history
-    try {
-      var saved = localStorage.getItem('prompt-history');
-      if (saved) history = JSON.parse(saved);
-      renderHistory();
-    } catch(e) {}
+    parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'api-settings' } }, '*');
+    parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'prompt-history' } }, '*');
 
     // Elements
     var scanBtn = document.getElementById('scanBtn');
@@ -90,35 +151,184 @@
     var closeBtn = document.getElementById('closeBtn');
     var copyBtn = document.getElementById('copyBtn');
     var firstPromptCheckbox = document.getElementById('firstPrompt');
+    var aiStatus = document.getElementById('aiStatus');
+    var aiSettingsBtn = document.getElementById('aiSettingsBtn');
+    var apiModal = document.getElementById('apiModal');
+    var apiKeyInput = document.getElementById('apiKeyInput');
+    var providerSelect = document.getElementById('providerSelect');
+    var saveApiBtn = document.getElementById('saveApiBtn');
+    var cancelApiBtn = document.getElementById('cancelApiBtn');
+    var removeKeyBtn = document.getElementById('removeKeyBtn');
+    var apiHint = document.getElementById('apiHint');
+    var errorBox = document.getElementById('errorBox');
+    var errorSummary = document.getElementById('errorSummary');
+    var errorDetail = document.getElementById('errorDetail');
+    var aiUpgradeBar = document.getElementById('aiUpgradeBar');
+    var viewAiBtn = document.getElementById('viewAiBtn');
 
-    // Scan button
+    var providerNames = { google: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic Claude' };
+
+    function updateAiStatus() {
+      if (apiSettings.apiKey) {
+        aiStatus.textContent = 'AI: ' + (providerNames[apiSettings.provider] || apiSettings.provider);
+        aiStatus.classList.add('active');
+      } else {
+        aiStatus.textContent = 'AI: Not configured';
+        aiStatus.classList.remove('active');
+      }
+    }
+
+    function simpleHash(str) {
+      var hash = 0;
+      for (var i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return apiSettings.provider + ':' + hash.toString();
+    }
+
+    function resetModalState() {
+      errorBox.classList.add('hidden');
+      errorDetail.classList.add('hidden');
+      aiUpgradeBar.classList.add('hidden');
+      pendingAiPrompt = null;
+    }
+
+    // Provider hint
+    providerSelect.onchange = function() {
+      var hints = {
+        google: 'Get free key: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>',
+        openai: 'Get key: <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>',
+        anthropic: 'Get key: <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>'
+      };
+      apiHint.innerHTML = hints[providerSelect.value];
+    };
+
+    // AI Settings button opens modal
+    aiSettingsBtn.onclick = function() {
+      providerSelect.value = apiSettings.provider;
+      apiKeyInput.value = apiSettings.apiKey || '';
+      providerSelect.onchange();
+      apiModal.classList.remove('hidden');
+    };
+
     scanBtn.onclick = function() {
       parent.postMessage({ pluginMessage: { type: 'scan-selection' } }, '*');
     };
 
-    // Generate button
+    // Generate: auto-detect AI availability
     generateBtn.onclick = function() {
       if (!layerTree) return;
-      var prompt = generatePrompt();
-      promptOutput.textContent = prompt;
-      modal.classList.remove('hidden');
-      saveToHistory(layerTree.name, prompt);
+      doGenerate();
     };
 
-    // Close modal
+    function doGenerate() {
+      var basicPrompt = generateBasicPrompt();
+      resetModalState();
+
+      if (apiSettings.apiKey) {
+        var cacheKey = simpleHash(basicPrompt);
+        if (responseCache[cacheKey]) {
+          promptOutput.textContent = responseCache[cacheKey];
+          modal.classList.remove('hidden');
+          saveToHistory(layerTree.name, responseCache[cacheKey]);
+          return;
+        }
+
+        promptOutput.textContent = basicPrompt;
+        modal.classList.remove('hidden');
+        saveToHistory(layerTree.name, basicPrompt);
+
+        generateBtn.textContent = 'Enhancing with AI...';
+        generateBtn.classList.add('loading');
+
+        var promptChars = basicPrompt.length;
+        enhanceWithAI(basicPrompt).then(function(enhanced) {
+          responseCache[cacheKey] = enhanced;
+          pendingAiPrompt = enhanced;
+          aiUpgradeBar.classList.remove('hidden');
+          generateBtn.textContent = 'Generate Prompt';
+          generateBtn.classList.remove('loading');
+        }).catch(function(err) {
+          var fullError = err.message || 'Unknown error';
+          var isRateLimit = fullError.toLowerCase().indexOf('rate limit') !== -1 ||
+                            fullError.indexOf('429') !== -1 ||
+                            fullError.toLowerCase().indexOf('quota') !== -1;
+          errorSummary.textContent = isRateLimit
+            ? 'AI rate limited - showing basic prompt (click for details)'
+            : 'AI unavailable - showing basic prompt (click for details)';
+          errorDetail.textContent = fullError + '\n\nPrompt size: ' + promptChars + ' chars (~' + Math.ceil(promptChars / 4) + ' tokens)\nProvider: ' + apiSettings.provider + '\n\nFull prompt logged to browser console (F12 > Console).';
+          errorBox.classList.remove('hidden');
+          generateBtn.textContent = 'Generate Prompt';
+          generateBtn.classList.remove('loading');
+        });
+      } else {
+        promptOutput.textContent = basicPrompt;
+        modal.classList.remove('hidden');
+        saveToHistory(layerTree.name, basicPrompt);
+      }
+    }
+
+    // Toggle error detail
+    errorSummary.onclick = function() {
+      errorDetail.classList.toggle('hidden');
+    };
+
+    // View AI enhanced prompt
+    viewAiBtn.onclick = function() {
+      if (pendingAiPrompt) {
+        promptOutput.textContent = pendingAiPrompt;
+        aiUpgradeBar.classList.add('hidden');
+        saveToHistory(layerTree.name, pendingAiPrompt);
+      }
+    };
+
+    // Save API settings (no auto-generate)
+    saveApiBtn.onclick = function() {
+      var key = apiKeyInput.value.trim();
+      if (key) {
+        apiSettings = { provider: providerSelect.value, apiKey: key };
+        parent.postMessage({ pluginMessage: { type: 'storage-set', key: 'api-settings', value: apiSettings } }, '*');
+        updateAiStatus();
+        apiModal.classList.add('hidden');
+      }
+    };
+
+    // Remove key
+    removeKeyBtn.onclick = function() {
+      apiSettings = { provider: apiSettings.provider, apiKey: '' };
+      parent.postMessage({ pluginMessage: { type: 'storage-set', key: 'api-settings', value: apiSettings } }, '*');
+      updateAiStatus();
+      apiKeyInput.value = '';
+      apiModal.classList.add('hidden');
+    };
+
+    cancelApiBtn.onclick = function() {
+      apiModal.classList.add('hidden');
+    };
+
     closeBtn.onclick = function() {
       modal.classList.add('hidden');
+      resetModalState();
     };
 
-    // Copy button
     copyBtn.onclick = function() {
       var text = promptOutput.textContent;
-      navigator.clipboard.writeText(text).then(function() {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
         parent.postMessage({ pluginMessage: { type: 'notify', message: 'Copied to clipboard!' } }, '*');
-      });
+      } catch(e) {
+        parent.postMessage({ pluginMessage: { type: 'notify', message: 'Copy failed' } }, '*');
+      }
+      document.body.removeChild(textarea);
     };
 
-    // Listen for messages from Figma
     window.onmessage = function(event) {
       var msg = event.data.pluginMessage;
       if (!msg) return;
@@ -132,9 +342,143 @@
       }
 
       if (msg.type === 'error') {
-        alert(msg.message);
+        parent.postMessage({ pluginMessage: { type: 'notify', message: msg.message } }, '*');
+      }
+
+      if (msg.type === 'storage-result') {
+        if (msg.key === 'api-settings' && msg.value) {
+          apiSettings = msg.value;
+          updateAiStatus();
+        }
+        if (msg.key === 'prompt-history' && msg.value) {
+          promptHistory = msg.value;
+          renderHistory();
+        }
       }
     };
+
+    // --- Fetch with exponential backoff ---
+    function fetchWithRetry(url, options, maxRetries) {
+      maxRetries = maxRetries || 3;
+      var attempt = 0;
+
+      function doFetch() {
+        return fetch(url, options).then(function(res) {
+          if (res.status === 429 && attempt < maxRetries) {
+            attempt++;
+            var retryAfter = res.headers.get('Retry-After');
+            var waitMs = retryAfter
+              ? parseInt(retryAfter) * 1000
+              : Math.min(1000 * Math.pow(2, attempt), 16000);
+            generateBtn.textContent = 'Retrying (' + attempt + '/' + maxRetries + ')...';
+            return new Promise(function(resolve) {
+              setTimeout(resolve, waitMs);
+            }).then(doFetch);
+          }
+          return res;
+        });
+      }
+
+      return doFetch();
+    }
+
+    // --- AI Enhancement ---
+    function enhanceWithAI(basicPrompt) {
+      var systemPrompt = 'You are a UI/UX expert. Take this design spec and create a clear, actionable prompt for AI coding tools (Cursor, v0, Lovable, Figma Make, Codex). Be concise. Focus on: component hierarchy, layout (flexbox/grid), key styles, interactions. Output only the improved prompt.';
+
+      var totalChars = systemPrompt.length + basicPrompt.length;
+      var estimatedTokens = Math.ceil(totalChars / 4);
+      console.log('[Prompt Generator] Provider: ' + apiSettings.provider);
+      console.log('[Prompt Generator] Prompt size: ' + totalChars + ' chars (~' + estimatedTokens + ' tokens)');
+      console.log('[Prompt Generator] System prompt (' + systemPrompt.length + ' chars):', systemPrompt);
+      console.log('[Prompt Generator] User prompt (' + basicPrompt.length + ' chars):', basicPrompt);
+
+      if (apiSettings.provider === 'google') {
+        return fetchWithRetry('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiSettings.apiKey, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt + '\n\nDesign spec:\n' + basicPrompt }] }]
+          })
+        }, 3)
+        .then(handleResponse)
+        .then(function(data) {
+          if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            return data.candidates[0].content.parts[0].text;
+          }
+          throw new Error('Invalid response from Google Gemini');
+        });
+      }
+
+      if (apiSettings.provider === 'openai') {
+        return fetchWithRetry('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiSettings.apiKey
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: basicPrompt }
+            ]
+          })
+        }, 3)
+        .then(handleResponse)
+        .then(function(data) {
+          if (data.choices && data.choices[0]) {
+            return data.choices[0].message.content;
+          }
+          throw new Error('Invalid response from OpenAI');
+        });
+      }
+
+      if (apiSettings.provider === 'anthropic') {
+        return fetchWithRetry('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiSettings.apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 2048,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: basicPrompt }]
+          })
+        }, 3)
+        .then(handleResponse)
+        .then(function(data) {
+          if (data.content && data.content[0]) {
+            return data.content[0].text;
+          }
+          throw new Error('Invalid response from Anthropic');
+        });
+      }
+
+      return Promise.reject(new Error('Unknown provider'));
+    }
+
+    function handleResponse(res) {
+      if (res.status === 429) {
+        console.error('[Prompt Generator] 429 after all retries exhausted');
+        throw new Error('Rate limit reached (429). Free tier allows ~15 requests/min. All retries exhausted.');
+      }
+      if (!res.ok) {
+        return res.json().then(function(err) {
+          console.error('[Prompt Generator] API error ' + res.status + ':', JSON.stringify(err, null, 2));
+          throw new Error(err.error?.message || 'API error ' + res.status);
+        }).catch(function(parseErr) {
+          if (parseErr.message && parseErr.message.indexOf('API error') !== -1) throw parseErr;
+          console.error('[Prompt Generator] Non-JSON error response, status: ' + res.status);
+          throw new Error('API error ' + res.status + ' (non-JSON response)');
+        });
+      }
+      return res.json();
+    }
 
     function renderLayers() {
       if (!layerTree) {
@@ -182,7 +526,7 @@
         input.placeholder = 'Add note for this element...';
         input.value = annotations[layer.id] || '';
         input.onclick = function(e) { e.stopPropagation(); };
-        input.onchange = function(e) {
+        input.oninput = function(e) {
           annotations[layer.id] = e.target.value;
         };
         
@@ -210,80 +554,277 @@
       return result;
     }
 
-    function generatePrompt() {
+    function generateBasicPrompt() {
       var layers = flattenLayers(layerTree);
       var prompt = '';
 
+      prompt += 'Build this UI component:\n\n';
+
       if (firstPromptCheckbox.checked) {
-        prompt += '## Global Styles Setup\n';
-        prompt += 'Before building this component, set up the following global styles:\n';
-        prompt += '- Create a consistent color palette based on the colors used below\n';
-        prompt += '- Set up typography scale based on the font sizes mentioned\n';
-        prompt += '- Define spacing tokens for consistent padding/margins\n\n';
-      }
-
-      prompt += '## Screen: ' + layerTree.name + '\n';
-      prompt += 'Dimensions: ' + layerTree.width + 'x' + layerTree.height + 'px\n\n';
-      prompt += '## Structure\n';
-      prompt += 'This screen contains the following elements:\n\n';
-
-      for (var i = 0; i < layers.length; i++) {
-        var layer = layers[i];
-        var indent = '';
-        for (var j = 0; j < layer.depth; j++) indent += '  ';
+        prompt += '## Project Setup\n';
+        prompt += 'Create these CSS variables first:\n';
+        prompt += '```css\n:root {\n';
         
-        var desc = indent + '- **' + layer.name + '** (' + layer.type + ')';
-        
-        if (layer.width && layer.height) {
-          desc += ' - ' + layer.width + 'x' + layer.height + 'px';
-        }
-        
-        if (layer.characters) {
-          desc += ' - Text: "' + layer.characters + '"';
-        }
-        
-        if (layer.fills && layer.fills.length > 0) {
-          for (var k = 0; k < layer.fills.length; k++) {
-            if (layer.fills[k].color) {
-              desc += ' - Color: ' + layer.fills[k].color;
-              break;
-            }
+        var tokens = extractDesignTokens(layers);
+        if (tokens.colors.length > 0) {
+          prompt += '  /* Colors */\n';
+          for (var i = 0; i < tokens.colors.length; i++) {
+            prompt += '  --color-' + (i + 1) + ': ' + tokens.colors[i] + ';\n';
           }
         }
-        
-        prompt += desc + '\n';
-        
-        if (annotations[layer.id]) {
-          prompt += indent + '  → Note: ' + annotations[layer.id] + '\n';
+        if (tokens.fontSizes.length > 0) {
+          prompt += '  /* Typography */\n';
+          for (var i = 0; i < tokens.fontSizes.length; i++) {
+            var size = tokens.fontSizes[i];
+            var name = getFontSizeName(parseInt(size));
+            prompt += '  --font-' + name + ': ' + size + ';\n';
+          }
         }
+        prompt += '}\n```\n\n';
+      }
+
+      prompt += '## Component: ' + layerTree.name + '\n';
+      prompt += 'Size: ' + layerTree.width + 'x' + layerTree.height + 'px (mobile)\n\n';
+
+      prompt += '## Structure\n';
+      prompt += '```\n';
+      prompt += buildTreeView(layerTree, 0);
+      prompt += '```\n\n';
+
+      prompt += '## Key Elements\n\n';
+      var keyElements = identifyKeyElements(layers);
+      for (var i = 0; i < keyElements.length; i++) {
+        var el = keyElements[i];
+        prompt += '**' + el.name + '** (' + el.componentType + ')\n';
+        if (el.size) prompt += '- Size: ' + el.size + '\n';
+        if (el.text) prompt += '- Text: "' + el.text + '"\n';
+        if (el.color) prompt += '- Color: ' + el.color + '\n';
+        if (el.layout) prompt += '- Layout: ' + el.layout + '\n';
+        if (annotations[el.id]) prompt += '- Note: ' + annotations[el.id] + '\n';
+        prompt += '\n';
       }
 
       var hasAnnotations = false;
+      var annotationsList = [];
       for (var id in annotations) {
         if (annotations[id] && annotations[id].trim()) {
           hasAnnotations = true;
-          break;
+          var layer = findLayerById(layers, id);
+          if (layer) {
+            annotationsList.push({ name: layer.name, note: annotations[id] });
+          }
         }
       }
       
       if (hasAnnotations) {
-        prompt += '\n## Special Instructions\n';
-        for (var id in annotations) {
-          if (annotations[id] && annotations[id].trim()) {
-            var layer = layers.find(function(l) { return l.id === id; });
-            if (layer) {
-              prompt += '- **' + layer.name + '**: ' + annotations[id] + '\n';
+        prompt += '## Custom Instructions\n';
+        for (var i = 0; i < annotationsList.length; i++) {
+          prompt += '- ' + annotationsList[i].name + ': ' + annotationsList[i].note + '\n';
+        }
+        prompt += '\n';
+      }
+
+      prompt += '## Requirements\n';
+      prompt += '- Responsive (this is ' + layerTree.width + 'px mobile)\n';
+      prompt += '- Use flexbox/grid\n';
+      prompt += '- Semantic HTML\n';
+      prompt += '- Accessible\n';
+
+      return prompt;
+    }
+
+    function buildTreeView(layer, depth) {
+      var indent = '';
+      for (var i = 0; i < depth; i++) indent += '  ';
+      
+      var line = indent + getComponentIcon(layer) + ' ' + layer.name;
+      
+      var info = [];
+      var compType = detectComponentType(layer);
+      if (compType && compType !== 'Container') info.push(compType);
+      if (layer.characters) info.push('"' + truncate(layer.characters, 20) + '"');
+      
+      if (info.length > 0) line += ' [' + info.join(', ') + ']';
+      line += '\n';
+      
+      if (layer.children && depth < 3) {
+        for (var i = 0; i < layer.children.length; i++) {
+          line += buildTreeView(layer.children[i], depth + 1);
+        }
+      } else if (layer.children && layer.children.length > 0) {
+        line += indent + '  ... (' + layer.children.length + ' children)\n';
+      }
+      
+      return line;
+    }
+
+    function getComponentIcon(layer) {
+      var type = detectComponentType(layer);
+      if (type === 'Button') return '[btn]';
+      if (type === 'Input Field') return '[input]';
+      if (type === 'Text') return '[txt]';
+      if (type === 'Image') return '[img]';
+      if (type === 'Icon') return '[ico]';
+      if (type === 'Avatar') return '[avatar]';
+      if (type === 'Card') return '[card]';
+      if (type === 'Navigation Bar') return '[nav]';
+      if (type === 'Tab') return '[tab]';
+      if (type === 'Badge') return '[badge]';
+      if (type === 'Skeleton/Loading') return '[skeleton]';
+      if (layer.type === 'FRAME' || layer.type === 'GROUP') return '[box]';
+      if (layer.type === 'INSTANCE') return '[comp]';
+      return '[' + layer.type.toLowerCase().substring(0, 3) + ']';
+    }
+
+    function identifyKeyElements(layers) {
+      var key = [];
+      
+      for (var i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        var compType = detectComponentType(layer);
+        
+        var isKey = compType && compType !== 'Container' && compType !== 'Text';
+        var hasNote = annotations[layer.id] && annotations[layer.id].trim();
+        var isTopLevel = layer.depth <= 2;
+        
+        if ((isKey && isTopLevel) || hasNote) {
+          var el = {
+            id: layer.id,
+            name: layer.name,
+            componentType: compType || layer.type,
+            size: layer.width + 'x' + layer.height + 'px'
+          };
+          
+          if (layer.characters) el.text = truncate(layer.characters, 50);
+          if (layer.fills && layer.fills[0] && layer.fills[0].color) {
+            el.color = layer.fills[0].color;
+          }
+          if (layer.children && layer.children.length > 1) {
+            el.layout = detectLayout(layer.children);
+          }
+          
+          key.push(el);
+        }
+      }
+      
+      return key.slice(0, 15);
+    }
+
+    function findLayerById(layers, id) {
+      for (var i = 0; i < layers.length; i++) {
+        if (layers[i].id === id) return layers[i];
+      }
+      return null;
+    }
+
+    function truncate(str, len) {
+      if (str.length <= len) return str;
+      return str.substring(0, len) + '...';
+    }
+
+    function getFontSizeName(size) {
+      if (size <= 10) return 'xs';
+      if (size <= 12) return 'sm';
+      if (size <= 14) return 'base';
+      if (size <= 16) return 'md';
+      if (size <= 18) return 'lg';
+      if (size <= 22) return 'xl';
+      if (size <= 26) return '2xl';
+      return '3xl';
+    }
+
+    function detectComponentType(layer) {
+      var name = layer.name.toLowerCase();
+      var type = layer.type;
+      
+      if (name.includes('button') || name.includes('btn') || name.includes('cta')) return 'Button';
+      if (name.includes('input') || name.includes('textfield')) return 'Input Field';
+      if (name.includes('search')) return 'Search Bar';
+      if (name.includes('statusbar') || name.includes('status bar')) return 'Status Bar';
+      if (name.includes('nav') || name.includes('header') || name.includes('topbar')) return 'Navigation Bar';
+      if (name.includes('tabbar') || name.includes('tab bar')) return 'Tab Bar';
+      if (name.includes('tab')) return 'Tab';
+      if (name.includes('card')) return 'Card';
+      if (name.includes('avatar')) return 'Avatar';
+      if (name.includes('icon')) return 'Icon';
+      if (name.includes('image') || name.includes('img') || name.includes('photo')) return 'Image';
+      if (name.includes('list')) return 'List';
+      if (name.includes('modal') || name.includes('dialog') || name.includes('popup')) return 'Modal';
+      if (name.includes('footer')) return 'Footer';
+      if (name.includes('sidebar')) return 'Sidebar';
+      if (name.includes('badge') || name.includes('tag') || name.includes('chip')) return 'Badge';
+      if (name.includes('toggle') || name.includes('switch')) return 'Toggle';
+      if (name.includes('checkbox')) return 'Checkbox';
+      if (name.includes('radio')) return 'Radio';
+      if (name.includes('dropdown') || name.includes('select')) return 'Dropdown';
+      if (name.includes('progress')) return 'Progress Bar';
+      if (name.includes('loading') || name.includes('skeleton')) return 'Skeleton/Loading';
+      if (name.includes('divider') || name.includes('separator')) return 'Divider';
+      if (name.includes('homeindicator')) return 'Home Indicator';
+      
+      if (type === 'TEXT') return 'Text';
+      if (type === 'VECTOR' || type === 'BOOLEAN_OPERATION') return 'Icon';
+      if (type === 'ELLIPSE') return 'Circle';
+      
+      if (type === 'FRAME' || type === 'GROUP' || type === 'INSTANCE') {
+        if (layer.children && layer.children.length > 0) {
+          var hasText = false;
+          for (var i = 0; i < layer.children.length; i++) {
+            if (layer.children[i].type === 'TEXT') hasText = true;
+          }
+          if (hasText && layer.width < 200 && layer.height < 60) return 'Button';
+        }
+        return 'Container';
+      }
+      
+      return null;
+    }
+
+    function detectLayout(children) {
+      if (!children || children.length < 2) return 'single';
+      
+      var first = children[0];
+      var second = children[1];
+      
+      var hDiff = Math.abs((second.x || 0) - (first.x || 0));
+      var vDiff = Math.abs((second.y || 0) - (first.y || 0));
+      
+      if (hDiff > vDiff * 2) return 'flex-row';
+      if (vDiff > hDiff * 2) return 'flex-col';
+      return 'grid';
+    }
+
+    function extractDesignTokens(layers) {
+      var colors = [];
+      var fontSizes = [];
+      var colorSet = {};
+      var fontSet = {};
+      
+      for (var i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        
+        if (layer.fills) {
+          for (var j = 0; j < layer.fills.length; j++) {
+            var c = layer.fills[j].color;
+            if (c && !colorSet[c]) {
+              colorSet[c] = true;
+              colors.push(c);
             }
           }
         }
+        
+        if (layer.fontSize && !fontSet[layer.fontSize]) {
+          fontSet[layer.fontSize] = true;
+          fontSizes.push(layer.fontSize + 'px');
+        }
       }
-
-      prompt += '\n## Implementation Notes\n';
-      prompt += '- Use semantic HTML elements where appropriate\n';
-      prompt += '- Ensure responsive behavior\n';
-      prompt += '- Follow accessibility best practices\n';
-
-      return prompt;
+      
+      fontSizes.sort(function(a, b) { return parseInt(a) - parseInt(b); });
+      
+      return {
+        colors: colors.slice(0, 8),
+        fontSizes: fontSizes
+      };
     }
 
     function saveToHistory(name, prompt) {
@@ -293,11 +834,11 @@
         frameName: name,
         prompt: prompt
       };
-      history.unshift(item);
-      if (history.length > 20) history = history.slice(0, 20);
-      try {
-        localStorage.setItem('prompt-history', JSON.stringify(history));
-      } catch(e) {}
+      promptHistory.unshift(item);
+      if (promptHistory.length > 20) promptHistory = promptHistory.slice(0, 20);
+      
+      // Save to Figma storage
+      parent.postMessage({ pluginMessage: { type: 'storage-set', key: 'prompt-history', value: promptHistory } }, '*');
       renderHistory();
     }
 
@@ -305,7 +846,7 @@
       var section = document.getElementById('historySection');
       var list = document.getElementById('historyList');
       
-      if (history.length === 0) {
+      if (promptHistory.length === 0) {
         section.classList.add('hidden');
         return;
       }
@@ -313,7 +854,7 @@
       section.classList.remove('hidden');
       list.innerHTML = '';
       
-      var shown = history.slice(0, 5);
+      var shown = promptHistory.slice(0, 5);
       for (var i = 0; i < shown.length; i++) {
         var item = shown[i];
         var div = document.createElement('div');

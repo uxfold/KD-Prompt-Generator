@@ -8,7 +8,7 @@
   // src/code.ts
   var require_code = __commonJS({
     "src/code.ts"() {
-      figma.showUI(__html__, { width: 400, height: 600 });
+      figma.showUI(__html__, { width: 400, height: 650 });
       function getLayerTree(node, depth) {
         const layer = {
           id: node.id,
@@ -46,7 +46,7 @@
         }
         return layer;
       }
-      figma.ui.onmessage = function(msg) {
+      figma.ui.onmessage = async function(msg) {
         if (msg.type === "scan-selection") {
           var selection = figma.currentPage.selection;
           if (selection.length === 0) {
@@ -59,6 +59,22 @@
         }
         if (msg.type === "notify") {
           figma.notify(msg.message);
+        }
+        if (msg.type === "storage-get") {
+          try {
+            const value = await figma.clientStorage.getAsync(msg.key);
+            figma.ui.postMessage({ type: "storage-result", key: msg.key, value });
+          } catch (e) {
+            figma.ui.postMessage({ type: "storage-result", key: msg.key, value: null });
+          }
+        }
+        if (msg.type === "storage-set") {
+          try {
+            await figma.clientStorage.setAsync(msg.key, msg.value);
+            figma.ui.postMessage({ type: "storage-saved", key: msg.key, success: true });
+          } catch (e) {
+            figma.ui.postMessage({ type: "storage-saved", key: msg.key, success: false });
+          }
         }
       };
     }

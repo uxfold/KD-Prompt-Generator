@@ -6,6 +6,10 @@
   "ui": "dist/ui.html",
   "editorType": ["figma"],
   "networkAccess": {
-    "allowedDomains": ["https://api.openai.com"]
+    "allowedDomains": [
+      "https://api.openai.com",
+      "https://generativelanguage.googleapis.com",
+      "https://api.anthropic.com"
+    ]
   }
 }

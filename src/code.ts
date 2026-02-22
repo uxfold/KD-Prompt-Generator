@@ -1,4 +1,4 @@
-figma.showUI(__html__, { width: 400, height: 600 });
+figma.showUI(__html__, { width: 400, height: 650 });
 
 // Get layer tree from selected frame
 function getLayerTree(node: SceneNode, depth: number): any {
@@ -49,7 +49,7 @@ function getLayerTree(node: SceneNode, depth: number): any {
 }
 
 // Handle messages from UI
-figma.ui.onmessage = function(msg) {
+figma.ui.onmessage = async function(msg) {
   if (msg.type === 'scan-selection') {
     var selection = figma.currentPage.selection;
     
@@ -66,5 +66,24 @@ figma.ui.onmessage = function(msg) {
 
   if (msg.type === 'notify') {
     figma.notify(msg.message);
+  }
+
+  // Storage operations
+  if (msg.type === 'storage-get') {
+    try {
+      const value = await figma.clientStorage.getAsync(msg.key);
+      figma.ui.postMessage({ type: 'storage-result', key: msg.key, value: value });
+    } catch (e) {
+      figma.ui.postMessage({ type: 'storage-result', key: msg.key, value: null });
+    }
+  }
+
+  if (msg.type === 'storage-set') {
+    try {
+      await figma.clientStorage.setAsync(msg.key, msg.value);
+      figma.ui.postMessage({ type: 'storage-saved', key: msg.key, success: true });
+    } catch (e) {
+      figma.ui.postMessage({ type: 'storage-saved', key: msg.key, success: false });
+    }
   }
 };
