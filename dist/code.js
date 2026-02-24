@@ -16,23 +16,32 @@
           type: node.type,
           depth
         };
-        if ("fills" in node && node.fills && Array.isArray(node.fills)) {
-          layer.fills = node.fills.map(function(fill) {
-            if (fill.type === "SOLID") {
-              var color = fill.color;
-              var opacity = fill.opacity !== void 0 ? fill.opacity : 1;
-              return {
-                type: "SOLID",
-                color: "rgba(" + Math.round(color.r * 255) + ", " + Math.round(color.g * 255) + ", " + Math.round(color.b * 255) + ", " + opacity + ")"
-              };
+        try {
+          if ("fills" in node) {
+            var fills = node.fills;
+            if (Array.isArray(fills)) {
+              layer.fills = fills.map(function(fill) {
+                if (fill.type === "SOLID") {
+                  var color = fill.color;
+                  var opacity = fill.opacity !== void 0 ? fill.opacity : 1;
+                  return {
+                    type: "SOLID",
+                    color: "rgba(" + Math.round(color.r * 255) + ", " + Math.round(color.g * 255) + ", " + Math.round(color.b * 255) + ", " + opacity + ")"
+                  };
+                }
+                return { type: fill.type };
+              });
             }
-            return { type: fill.type };
-          });
+          }
+        } catch (_) {
         }
         if (node.type === "TEXT") {
           var textNode = node;
           layer.characters = textNode.characters;
-          layer.fontSize = textNode.fontSize;
+          var fs = textNode.fontSize;
+          if (typeof fs === "number") {
+            layer.fontSize = fs;
+          }
         }
         if ("width" in node) {
           layer.width = Math.round(node.width);
@@ -40,9 +49,13 @@
         }
         if ("children" in node) {
           var parentNode = node;
-          layer.children = parentNode.children.map(function(child) {
-            return getLayerTree(child, depth + 1);
-          });
+          layer.children = [];
+          for (var i = 0; i < parentNode.children.length; i++) {
+            try {
+              layer.children.push(getLayerTree(parentNode.children[i], depth + 1));
+            } catch (_) {
+            }
+          }
         }
         return layer;
       }
@@ -54,8 +67,12 @@
             return;
           }
           var frame = selection[0];
-          var layerTree = getLayerTree(frame, 0);
-          figma.ui.postMessage({ type: "layer-tree", data: layerTree });
+          try {
+            var layerTree = getLayerTree(frame, 0);
+            figma.ui.postMessage({ type: "layer-tree", data: layerTree });
+          } catch (e) {
+            figma.ui.postMessage({ type: "error", message: "Scan failed: " + (e.message || "Unknown error") });
+          }
         }
         if (msg.type === "notify") {
           figma.notify(msg.message);

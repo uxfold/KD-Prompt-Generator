@@ -9,26 +9,34 @@ function getLayerTree(node: SceneNode, depth: number): any {
     depth: depth
   };
 
-  // Get styles if available
-  if ('fills' in node && node.fills && Array.isArray(node.fills)) {
-    layer.fills = node.fills.map(function(fill: Paint) {
-      if (fill.type === 'SOLID') {
-        var color = fill.color;
-        var opacity = fill.opacity !== undefined ? fill.opacity : 1;
-        return {
-          type: 'SOLID',
-          color: 'rgba(' + Math.round(color.r * 255) + ', ' + Math.round(color.g * 255) + ', ' + Math.round(color.b * 255) + ', ' + opacity + ')'
-        };
+  // Get styles — guard against figma.mixed (Symbol) values
+  try {
+    if ('fills' in node) {
+      var fills = node.fills;
+      if (Array.isArray(fills)) {
+        layer.fills = fills.map(function(fill: Paint) {
+          if (fill.type === 'SOLID') {
+            var color = fill.color;
+            var opacity = fill.opacity !== undefined ? fill.opacity : 1;
+            return {
+              type: 'SOLID',
+              color: 'rgba(' + Math.round(color.r * 255) + ', ' + Math.round(color.g * 255) + ', ' + Math.round(color.b * 255) + ', ' + opacity + ')'
+            };
+          }
+          return { type: fill.type };
+        });
       }
-      return { type: fill.type };
-    });
-  }
+    }
+  } catch (_) {}
 
-  // Get text content
+  // Get text content — fontSize can be figma.mixed for multi-style text
   if (node.type === 'TEXT') {
     var textNode = node as TextNode;
     layer.characters = textNode.characters;
-    layer.fontSize = textNode.fontSize;
+    var fs = textNode.fontSize;
+    if (typeof fs === 'number') {
+      layer.fontSize = fs;
+    }
   }
 
   // Get dimensions
@@ -37,12 +45,15 @@ function getLayerTree(node: SceneNode, depth: number): any {
     layer.height = Math.round(node.height);
   }
 
-  // Get children
+  // Get children — skip any child that fails to parse
   if ('children' in node) {
     var parentNode = node as ChildrenMixin;
-    layer.children = parentNode.children.map(function(child) {
-      return getLayerTree(child as SceneNode, depth + 1);
-    });
+    layer.children = [];
+    for (var i = 0; i < parentNode.children.length; i++) {
+      try {
+        layer.children.push(getLayerTree(parentNode.children[i] as SceneNode, depth + 1));
+      } catch (_) {}
+    }
   }
 
   return layer;
@@ -59,9 +70,13 @@ figma.ui.onmessage = async function(msg) {
     }
 
     var frame = selection[0];
-    var layerTree = getLayerTree(frame, 0);
     
-    figma.ui.postMessage({ type: 'layer-tree', data: layerTree });
+    try {
+      var layerTree = getLayerTree(frame, 0);
+      figma.ui.postMessage({ type: 'layer-tree', data: layerTree });
+    } catch (e: any) {
+      figma.ui.postMessage({ type: 'error', message: 'Scan failed: ' + (e.message || 'Unknown error') });
+    }
   }
 
   if (msg.type === 'notify') {

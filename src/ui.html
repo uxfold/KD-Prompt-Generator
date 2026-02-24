@@ -36,8 +36,14 @@
     .prompt-output { flex: 1; padding: 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 11px; line-height: 1.5; overflow-y: auto; white-space: pre-wrap; background: #fafafa; min-height: 200px; max-height: 350px; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .hidden { display: none; }
+    .layer-search { padding: 8px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 12px; width: 100%; outline: none; }
+    .layer-search:focus { border-color: #0d99ff; }
+    .layer-search::placeholder { color: #aaa; }
     .history-section { border-top: 1px solid #e5e5e5; padding-top: 12px; }
-    .history-title { font-weight: 600; margin-bottom: 8px; font-size: 11px; }
+    .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .history-title { font-weight: 600; font-size: 11px; }
+    .btn-clear { background: none; border: none; color: #e53935; font-size: 11px; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+    .btn-clear:hover { background: #fdecea; }
     .history-item { padding: 8px; background: #f8f8f8; border-radius: 4px; margin-bottom: 4px; cursor: pointer; font-size: 11px; }
     .history-item:hover { background: #f0f0f0; }
     .loading { opacity: 0.6; pointer-events: none; }
@@ -65,6 +71,8 @@
       <button class="btn btn-secondary btn-sm" id="aiSettingsBtn">AI Settings</button>
     </div>
     
+    <input type="text" class="layer-search hidden" id="layerSearch" placeholder="Search layers...">
+    
     <div class="layer-list" id="layerList">
       <div class="empty-state">Select a frame in Figma and click "Scan Selected Frame"</div>
     </div>
@@ -72,7 +80,10 @@
     <button class="btn btn-primary hidden" id="generateBtn">Generate Prompt</button>
     
     <div class="history-section hidden" id="historySection">
-      <div class="history-title">Recent Prompts</div>
+      <div class="history-header">
+        <div class="history-title">Recent Prompts</div>
+        <button class="btn-clear" id="clearHistoryBtn">Clear</button>
+      </div>
       <div id="historyList"></div>
     </div>
   </div>
@@ -138,6 +149,7 @@
     var apiSettings = { provider: 'google', apiKey: '' };
     var responseCache = {};
     var pendingAiPrompt = null;
+    var layerSearchQuery = '';
 
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'api-settings' } }, '*');
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'prompt-history' } }, '*');
@@ -165,6 +177,8 @@
     var errorDetail = document.getElementById('errorDetail');
     var aiUpgradeBar = document.getElementById('aiUpgradeBar');
     var viewAiBtn = document.getElementById('viewAiBtn');
+    var layerSearchInput = document.getElementById('layerSearch');
+    var clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
     var providerNames = { google: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic Claude' };
 
@@ -214,6 +228,17 @@
 
     scanBtn.onclick = function() {
       parent.postMessage({ pluginMessage: { type: 'scan-selection' } }, '*');
+    };
+
+    layerSearchInput.oninput = function() {
+      layerSearchQuery = layerSearchInput.value.toLowerCase();
+      renderLayers();
+    };
+
+    clearHistoryBtn.onclick = function() {
+      promptHistory = [];
+      parent.postMessage({ pluginMessage: { type: 'storage-set', key: 'prompt-history', value: [] } }, '*');
+      renderHistory();
     };
 
     // Generate: auto-detect AI availability
@@ -337,6 +362,8 @@
         layerTree = msg.data;
         annotations = {};
         selectedLayers = {};
+        layerSearchQuery = '';
+        layerSearchInput.value = '';
         renderLayers();
         generateBtn.classList.remove('hidden');
       }
@@ -480,16 +507,49 @@
       return res.json();
     }
 
+    function layerMatchesSearch(layer, query) {
+      if (!query) return true;
+      if (layer.name.toLowerCase().indexOf(query) !== -1) return true;
+      if (layer.type.toLowerCase().indexOf(query) !== -1) return true;
+      if (layer.children) {
+        for (var i = 0; i < layer.children.length; i++) {
+          if (layerMatchesSearch(layer.children[i], query)) return true;
+        }
+      }
+      return false;
+    }
+
     function renderLayers() {
       if (!layerTree) {
         layerListEl.innerHTML = '<div class="empty-state">Select a frame in Figma and click "Scan Selected Frame"</div>';
+        layerSearchInput.classList.add('hidden');
         return;
       }
+      layerSearchInput.classList.remove('hidden');
       layerListEl.innerHTML = '';
-      renderLayerItem(layerTree, layerListEl);
+      var rendered = renderLayerItem(layerTree, layerListEl, layerSearchQuery);
+      if (layerSearchQuery && !rendered) {
+        layerListEl.innerHTML = '<div class="empty-state">No layers match "' + layerSearchInput.value + '"</div>';
+      }
     }
 
-    function renderLayerItem(layer, container) {
+    function renderLayerItem(layer, container, query) {
+      var selfMatches = !query ||
+        layer.name.toLowerCase().indexOf(query) !== -1 ||
+        layer.type.toLowerCase().indexOf(query) !== -1;
+      var childHasMatch = false;
+
+      if (layer.children) {
+        for (var i = 0; i < layer.children.length; i++) {
+          if (layerMatchesSearch(layer.children[i], query)) {
+            childHasMatch = true;
+            break;
+          }
+        }
+      }
+
+      if (query && !selfMatches && !childHasMatch) return false;
+
       var div = document.createElement('div');
       
       var item = document.createElement('div');
@@ -538,9 +598,11 @@
       
       if (layer.children) {
         for (var i = 0; i < layer.children.length; i++) {
-          renderLayerItem(layer.children[i], container);
+          renderLayerItem(layer.children[i], container, query);
         }
       }
+
+      return true;
     }
 
     function flattenLayers(layer, result) {
