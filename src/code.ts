@@ -1,4 +1,4 @@
-figma.showUI(__html__, { width: 400, height: 650 });
+figma.showUI(__html__, { width: 420, height: 700 });
 
 // Get layer tree from selected frame
 function getLayerTree(node: SceneNode, depth: number): any {

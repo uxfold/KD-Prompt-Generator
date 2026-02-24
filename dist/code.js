@@ -8,7 +8,7 @@
   // src/code.ts
   var require_code = __commonJS({
     "src/code.ts"() {
-      figma.showUI(__html__, { width: 400, height: 650 });
+      figma.showUI(__html__, { width: 420, height: 700 });
       function getLayerTree(node, depth) {
         const layer = {
           id: node.id,
