@@ -1,5 +1,5 @@
 {
-  "name": "Prompt Generator",
+  "name": "KD Prompt Generator",
   "id": "prompt-generator-plugin",
   "api": "1.0.0",
   "main": "dist/code.js",

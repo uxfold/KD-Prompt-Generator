@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>KD Prompt Generator</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -72,19 +73,19 @@
     }
     
     .btn-primary {
-      background: #3F00FF;
+      background: #5B4CFF;
       color: white;
       width: 100%;
     }
     
     .btn-primary:hover {
-      background: #3300D4;
+      background: #4A3CFF;
     }
     
     .btn-outline {
       background: transparent;
-      color: #3F00FF;
-      border: 2px solid #3F00FF;
+      color: #5B4CFF;
+      border: 2px solid #5B4CFF;
       padding: 12px 24px;
     }
     
@@ -148,19 +149,7 @@
     }
     
     .back-btn:hover {
-      color: #3F00FF;
-    }
-    
-    .setup-api-link {
-      color: #3F00FF;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    
-    .setup-api-link:hover {
-      text-decoration: underline;
+      color: #5B4CFF;
     }
     
     .search-box {
@@ -174,7 +163,7 @@
     }
     
     .search-box:focus-within {
-      border-color: #3F00FF;
+      border-color: #5B4CFF;
     }
     
     .search-box svg {
@@ -252,7 +241,7 @@
     
     .annotation-input:focus {
       outline: none;
-      border-color: #3F00FF;
+      border-color: #5B4CFF;
     }
     
     .empty-state {
@@ -288,6 +277,81 @@
       color: #1a1a1a;
     }
     
+    .top-bar-right {
+      position: relative;
+    }
+    
+    .icon-button {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    
+    .icon-button:hover {
+      background: #F5F5F5;
+    }
+    
+    .hamburger-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .hamburger-line {
+      width: 16px;
+      height: 2px;
+      border-radius: 999px;
+      background: #1a1a1a;
+    }
+    
+    .menu-panel {
+      position: fixed;
+      right: 16px;
+      top: 16px;
+      background: #FFFFFF;
+      border: 1px solid #E5E5E5;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      padding: 6px 0;
+      min-width: 180px;
+      display: none;
+      z-index: 110;
+    }
+    
+    .menu-panel.open {
+      display: block;
+    }
+    
+    .menu-item {
+      width: 100%;
+      padding: 8px 14px;
+      background: transparent;
+      border: none;
+      text-align: left;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+      font-family: inherit;
+      display: block;
+      text-decoration: none;
+    }
+    
+    .menu-item:hover {
+      background: #FAFAFA;
+      color: #5B4CFF;
+    }
+    
+    .menu-item + .menu-item {
+      border-top: 1px solid #F5F5F5;
+    }
+    
     /* Modal */
     .modal-overlay {
       position: fixed;
@@ -309,7 +373,7 @@
     
     .modal {
       background: white;
-      border-radius: 20px;
+      border-radius: 16px;
       padding: 24px;
       width: 100%;
       max-width: 380px;
@@ -349,7 +413,7 @@
     
     .select-input:focus {
       outline: none;
-      border-color: #3F00FF;
+      border-color: #5B4CFF;
     }
     
     .text-input {
@@ -363,7 +427,7 @@
     
     .text-input:focus {
       outline: none;
-      border-color: #3F00FF;
+      border-color: #5B4CFF;
     }
     
     .hint {
@@ -384,6 +448,8 @@
     
     .modal-actions .btn {
       flex: 1;
+      padding: 10px 16px;
+      font-size: 14px;
     }
     
     .btn-secondary {
@@ -434,7 +500,7 @@
     .checkbox-row input {
       width: 18px;
       height: 18px;
-      accent-color: #3F00FF;
+      accent-color: #5B4CFF;
     }
     
     .checkbox-row label {
@@ -467,7 +533,7 @@
     .ai-upgrade-bar span {
       flex: 1;
       font-size: 13px;
-      color: #3F00FF;
+      color: #5B4CFF;
     }
     
     .ai-upgrade-bar .btn {
@@ -511,9 +577,49 @@
     
     .ai-status-text {
       font-size: 13px;
-      color: #3F00FF;
+      color: #5B4CFF;
       text-align: center;
       padding: 8px 0;
+    }
+    
+    .textarea-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #E5E5E5;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 72px;
+    }
+    
+    .textarea-input:focus {
+      outline: none;
+      border-color: #5B4CFF;
+    }
+    
+    .required {
+      color: #E53935;
+      font-weight: 500;
+      font-size: 12px;
+    }
+    
+    .optional {
+      color: #999;
+      font-size: 12px;
+      font-weight: 400;
+    }
+    
+    .success-text {
+      color: #1B8A3E;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    
+    .about-text,
+    .about-meta {
+      font-size: 13px;
+      color: #555;
     }
     
     .hidden { display: none !important; }
@@ -523,6 +629,19 @@
   
   <!-- HOME SCREEN -->
   <div class="screen home-screen active" id="homeScreen">
+    <div class="top-bar">
+      <div></div>
+      <div class="top-bar-right">
+        <button class="icon-button" id="homeMenuButton" aria-label="Open menu">
+          <div class="hamburger-lines">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+          </div>
+        </button>
+      </div>
+    </div>
+
     <div>
       <h1 class="steps-title">How to use</h1>
       <ol class="steps-list">
@@ -556,7 +675,15 @@
         </svg>
         Back
       </button>
-      <a class="setup-api-link" id="setupApiBtn">Setup API</a>
+      <div class="top-bar-right">
+        <button class="icon-button" id="menuButton" aria-label="Open menu">
+          <div class="hamburger-lines">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+          </div>
+        </button>
+      </div>
     </div>
     
     <div class="search-box">
@@ -592,6 +719,13 @@
     </div>
   </div>
   
+  <div class="menu-panel" id="menuPanel">
+    <button class="menu-item" id="menuItemSetup">Setup API</button>
+    <a class="menu-item" id="menuItemHelp" href="https://kdpg.karandhimaan.com" target="_blank" rel="noopener noreferrer">Help &amp; Learn</a>
+    <button class="menu-item" id="menuItemFeedback">Send Feedback</button>
+    <button class="menu-item" id="menuItemAbout">About</button>
+  </div>
+
   <!-- API SETTINGS MODAL -->
   <div class="modal-overlay" id="apiModal">
     <div class="modal">
@@ -639,6 +773,113 @@
     </div>
   </div>
 
+  <!-- FEEDBACK MODAL -->
+  <div class="modal-overlay" id="feedbackModal">
+    <div class="modal">
+      <h2 class="modal-title">Send Feedback</h2>
+
+      <div class="form-group">
+        <label class="form-label">Overall Experience <span class="required">*</span></label>
+        <div class="checkbox-row">
+          <input type="radio" name="feedbackExperience" id="expAmazing" value="Amazing">
+          <label for="expAmazing">Amazing</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="radio" name="feedbackExperience" id="expGood" value="Good">
+          <label for="expGood">Good</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="radio" name="feedbackExperience" id="expOkay" value="Okay">
+          <label for="expOkay">Okay</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="radio" name="feedbackExperience" id="expNeedsWork" value="Needs Work">
+          <label for="expNeedsWork">Needs Work</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">What do you use this plugin for? <span class="optional">(optional)</span></label>
+        <div class="checkbox-row">
+          <input type="checkbox" name="feedbackUsage" id="useCursor" value="cursor">
+          <label for="useCursor">Generating prompts for Cursor</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" name="feedbackUsage" id="useV0" value="v0">
+          <label for="useV0">Generating prompts for v0</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" name="feedbackUsage" id="useClaudeChatgpt" value="claude_chatgpt">
+          <label for="useClaudeChatgpt">Generating prompts for Claude/ChatGPT</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" name="feedbackUsage" id="useFigmaMake" value="figma_make">
+          <label for="useFigmaMake">Generating prompts for Figma Make</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" name="feedbackUsage" id="useOther" value="other">
+          <label for="useOther">Other</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">What's missing or could be better? <span class="optional">(optional)</span></label>
+        <textarea id="feedbackComments" class="textarea-input" rows="3" placeholder="Tell us what features you'd like to see..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Would you recommend this to other designers? <span class="required">*</span></label>
+        <div class="checkbox-row">
+          <input type="radio" name="feedbackRecommend" id="recDefinitely" value="Definitely">
+          <label for="recDefinitely">Definitely</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="radio" name="feedbackRecommend" id="recMaybe" value="Maybe">
+          <label for="recMaybe">Maybe</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="radio" name="feedbackRecommend" id="recNotYet" value="Not yet">
+          <label for="recNotYet">Not yet</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Your email <span class="optional">(optional)</span></label>
+        <input type="email" id="feedbackEmail" class="text-input" placeholder="For follow-up (optional)">
+      </div>
+
+      <div id="feedbackError" class="error-text hidden"></div>
+      <div id="feedbackSuccess" class="success-text hidden"></div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelFeedbackBtn">Cancel</button>
+        <button class="btn btn-primary" id="submitFeedbackBtn">Send Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT MODAL -->
+  <div class="modal-overlay" id="aboutModal">
+    <div class="modal">
+      <h2 class="modal-title">About</h2>
+      <div class="form-group">
+        <p class="about-text">
+          KD Prompt Generator helps you turn Figma designs into high-quality prompts for tools like Cursor, v0, Claude, and more.
+        </p>
+      </div>
+      <div class="form-group">
+        <p class="about-meta">
+          Version: v1.0.0<br>
+          Created by: Karan Dhimaan<br>
+          Credits: Built for fast, AI-ready handoff from Figma.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="closeAboutBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // State
     var layerTree = null;
@@ -649,6 +890,8 @@
     var responseCache = {};
     var pendingAiPrompt = null;
     var layerSearchQuery = '';
+    var SUPABASE_URL = 'https://udeulspbicbybydzdgal.supabase.co';
+    var SUPABASE_ANON_KEY = 'sb_publishable_WJlZnGdbTHSh9t_63LrRtQ_18-pxjYz';
 
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'api-settings' } }, '*');
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'prompt-history' } }, '*');
@@ -658,7 +901,13 @@
     var generatorScreen = document.getElementById('generatorScreen');
     var startBtn = document.getElementById('startBtn');
     var backBtn = document.getElementById('backBtn');
-    var setupApiBtn = document.getElementById('setupApiBtn');
+    var homeMenuButton = document.getElementById('homeMenuButton');
+    var menuButton = document.getElementById('menuButton');
+    var menuPanel = document.getElementById('menuPanel');
+    var menuItemSetup = document.getElementById('menuItemSetup');
+    var menuItemHelp = document.getElementById('menuItemHelp');
+    var menuItemFeedback = document.getElementById('menuItemFeedback');
+    var menuItemAbout = document.getElementById('menuItemAbout');
     var setupApiHomeBtn = document.getElementById('setupApiHomeBtn');
     var searchInput = document.getElementById('searchInput');
     var layerListEl = document.getElementById('layerList');
@@ -669,6 +918,8 @@
     // Modals
     var apiModal = document.getElementById('apiModal');
     var promptModal = document.getElementById('promptModal');
+    var feedbackModal = document.getElementById('feedbackModal');
+    var aboutModal = document.getElementById('aboutModal');
     var providerSelect = document.getElementById('providerSelect');
     var apiKeyInput = document.getElementById('apiKeyInput');
     var apiHint = document.getElementById('apiHint');
@@ -681,6 +932,11 @@
     var aiUpgradeBar = document.getElementById('aiUpgradeBar');
     var viewAiBtn = document.getElementById('viewAiBtn');
     var aiStatusText = document.getElementById('aiStatusText');
+    var feedbackError = document.getElementById('feedbackError');
+    var feedbackSuccess = document.getElementById('feedbackSuccess');
+    var cancelFeedbackBtn = document.getElementById('cancelFeedbackBtn');
+    var submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
+    var closeAboutBtn = document.getElementById('closeAboutBtn');
 
     // Navigation
     startBtn.onclick = function() {
@@ -703,7 +959,6 @@
     }
 
     // API Modal
-    setupApiBtn.onclick = function() { openApiModal(); };
     setupApiHomeBtn.onclick = function() { openApiModal(); };
 
     function openApiModal() {
@@ -737,6 +992,59 @@
     cancelApiBtn.onclick = function() {
       apiModal.classList.remove('active');
     };
+
+    // Hamburger menu
+    function closeMenu() {
+      if (menuPanel) {
+        menuPanel.classList.remove('open');
+      }
+    }
+
+    function attachMenuTrigger(button) {
+      if (!button || !menuPanel) return;
+      button.onclick = function(e) {
+        e.stopPropagation();
+        menuPanel.classList.toggle('open');
+      };
+    }
+
+    attachMenuTrigger(menuButton);
+    attachMenuTrigger(homeMenuButton);
+
+    if (menuItemSetup) {
+      menuItemSetup.onclick = function() {
+        closeMenu();
+        openApiModal();
+      };
+    }
+
+    if (menuItemHelp) {
+      menuItemHelp.onclick = function() {
+        closeMenu();
+      };
+    }
+
+    if (menuItemFeedback) {
+      menuItemFeedback.onclick = function() {
+        closeMenu();
+        openFeedbackModal();
+      };
+    }
+
+    if (menuItemAbout) {
+      menuItemAbout.onclick = function() {
+        closeMenu();
+        openAboutModal();
+      };
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!menuPanel) return;
+      if (menuPanel.contains(e.target)) return;
+      if (menuButton && menuButton.contains(e.target)) return;
+      if (homeMenuButton && homeMenuButton.contains(e.target)) return;
+      closeMenu();
+    });
 
     // Search
     searchInput.oninput = function() {
@@ -840,6 +1148,133 @@
         parent.postMessage({ pluginMessage: { type: 'notify', message: 'Copy failed' } }, '*');
       }
       document.body.removeChild(textarea);
+    };
+
+    // Feedback modal
+    function resetFeedbackForm() {
+      var inputs = feedbackModal.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+      for (var i = 0; i < inputs.length; i++) {
+        inputs[i].checked = false;
+      }
+      var commentsEl = document.getElementById('feedbackComments');
+      var emailEl = document.getElementById('feedbackEmail');
+      if (commentsEl) commentsEl.value = '';
+      if (emailEl) emailEl.value = '';
+    }
+
+    function openFeedbackModal() {
+      feedbackError.classList.add('hidden');
+      feedbackSuccess.classList.add('hidden');
+      feedbackModal.classList.add('active');
+    }
+
+    function closeFeedbackModal() {
+      feedbackModal.classList.remove('active');
+      resetFeedbackForm();
+    }
+
+    cancelFeedbackBtn.onclick = function() {
+      closeFeedbackModal();
+    };
+
+    feedbackModal.onclick = function(e) {
+      if (e.target === feedbackModal) {
+        closeFeedbackModal();
+      }
+    };
+
+    submitFeedbackBtn.onclick = function() {
+      feedbackError.classList.add('hidden');
+      feedbackSuccess.classList.add('hidden');
+
+      var experience = document.querySelector('input[name="feedbackExperience"]:checked');
+      var recommend = document.querySelector('input[name="feedbackRecommend"]:checked');
+
+      if (!experience || !recommend) {
+        feedbackError.textContent = 'Please answer the required questions.';
+        feedbackError.classList.remove('hidden');
+        return;
+      }
+
+      var usageNodes = document.querySelectorAll('input[name="feedbackUsage"]:checked');
+      var usage = [];
+      for (var i = 0; i < usageNodes.length; i++) {
+        usage.push(usageNodes[i].value);
+      }
+
+      var comments = (document.getElementById('feedbackComments').value || '').trim();
+      var email = (document.getElementById('feedbackEmail').value || '').trim();
+
+      var payload = {
+        experience: experience.value,
+        recommend: recommend.value,
+        usage: usage.join(', '),
+        comments: comments || null,
+        email: email || null
+      };
+
+      submitFeedbackBtn.disabled = true;
+
+      fetch(SUPABASE_URL + '/rest/v1/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      }).then(function(res) {
+        if (!res.ok) {
+          return res.text().then(function(text) {
+            throw new Error(text || ('Supabase error ' + res.status));
+          });
+        }
+      }).then(function() {
+        feedbackSuccess.textContent = 'Thanks for your feedback!';
+        feedbackSuccess.classList.remove('hidden');
+        parent.postMessage({ pluginMessage: { type: 'notify', message: 'Thanks for your feedback!' } }, '*');
+        setTimeout(function() {
+          closeFeedbackModal();
+        }, 1200);
+      }).catch(function(err) {
+        feedbackError.textContent = 'Could not send feedback. Please try again later.';
+        feedbackError.classList.remove('hidden');
+        console.error(err);
+      }).finally(function() {
+        submitFeedbackBtn.disabled = false;
+      });
+    };
+
+    // About modal
+    function openAboutModal() {
+      aboutModal.classList.add('active');
+    }
+
+    function closeAboutModal() {
+      aboutModal.classList.remove('active');
+    }
+
+    closeAboutBtn.onclick = function() {
+      closeAboutModal();
+    };
+
+    aboutModal.onclick = function(e) {
+      if (e.target === aboutModal) {
+        closeAboutModal();
+      }
+    };
+
+    apiModal.onclick = function(e) {
+      if (e.target === apiModal) {
+        apiModal.classList.remove('active');
+      }
+    };
+
+    promptModal.onclick = function(e) {
+      if (e.target === promptModal) {
+        promptModal.classList.remove('active');
+      }
     };
 
     // Listen for messages from Figma
