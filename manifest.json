@@ -1,16 +1,1 @@
-{
-  "name": "KD Prompt Generator",
-  "id": "prompt-generator-plugin",
-  "api": "1.0.0",
-  "main": "dist/code.js",
-  "ui": "dist/ui.html",
-  "editorType": ["figma"],
-"networkAccess": {
-  "allowedDomains": [
-    "https://api.openai.com",
-    "https://generativelanguage.googleapis.com",
-    "https://api.anthropic.com",
-    "https://gdvzczwujkoxitpeuenx.supabase.co"
-  ]
-}
-}
+{"name":"KD Prompt Generator","id":"1608543312343906666","api":"1.0.0","main":"dist/code.js","ui":"dist/ui.html","documentAccess": "dynamic-page","editorType":["figma"],"networkAccess":{"allowedDomains":["https://api.openai.com","https://generativelanguage.googleapis.com","https://api.anthropic.com"]}}

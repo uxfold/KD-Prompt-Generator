@@ -722,7 +722,6 @@
   <div class="menu-panel" id="menuPanel">
     <button class="menu-item" id="menuItemSetup">Setup API</button>
     <a class="menu-item" id="menuItemHelp" href="https://kdpg.karandhimaan.com" target="_blank" rel="noopener noreferrer">Help &amp; Learn</a>
-    <button class="menu-item" id="menuItemFeedback">Send Feedback</button>
     <button class="menu-item" id="menuItemAbout">About</button>
   </div>
 
@@ -773,91 +772,6 @@
     </div>
   </div>
 
-  <!-- FEEDBACK MODAL -->
-  <div class="modal-overlay" id="feedbackModal">
-    <div class="modal">
-      <h2 class="modal-title">Send Feedback</h2>
-
-      <div class="form-group">
-        <label class="form-label">Overall Experience <span class="required">*</span></label>
-        <div class="checkbox-row">
-          <input type="radio" name="feedbackExperience" id="expAmazing" value="Amazing">
-          <label for="expAmazing">Amazing</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="radio" name="feedbackExperience" id="expGood" value="Good">
-          <label for="expGood">Good</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="radio" name="feedbackExperience" id="expOkay" value="Okay">
-          <label for="expOkay">Okay</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="radio" name="feedbackExperience" id="expNeedsWork" value="Needs Work">
-          <label for="expNeedsWork">Needs Work</label>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">What do you use this plugin for? <span class="optional">(optional)</span></label>
-        <div class="checkbox-row">
-          <input type="checkbox" name="feedbackUsage" id="useCursor" value="cursor">
-          <label for="useCursor">Generating prompts for Cursor</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="checkbox" name="feedbackUsage" id="useV0" value="v0">
-          <label for="useV0">Generating prompts for v0</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="checkbox" name="feedbackUsage" id="useClaudeChatgpt" value="claude_chatgpt">
-          <label for="useClaudeChatgpt">Generating prompts for Claude/ChatGPT</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="checkbox" name="feedbackUsage" id="useFigmaMake" value="figma_make">
-          <label for="useFigmaMake">Generating prompts for Figma Make</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="checkbox" name="feedbackUsage" id="useOther" value="other">
-          <label for="useOther">Other</label>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">What's missing or could be better? <span class="optional">(optional)</span></label>
-        <textarea id="feedbackComments" class="textarea-input" rows="3" placeholder="Tell us what features you'd like to see..."></textarea>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Would you recommend this to other designers? <span class="required">*</span></label>
-        <div class="checkbox-row">
-          <input type="radio" name="feedbackRecommend" id="recDefinitely" value="Definitely">
-          <label for="recDefinitely">Definitely</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="radio" name="feedbackRecommend" id="recMaybe" value="Maybe">
-          <label for="recMaybe">Maybe</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="radio" name="feedbackRecommend" id="recNotYet" value="Not yet">
-          <label for="recNotYet">Not yet</label>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Your email <span class="optional">(optional)</span></label>
-        <input type="email" id="feedbackEmail" class="text-input" placeholder="For follow-up (optional)">
-      </div>
-
-      <div id="feedbackError" class="error-text hidden"></div>
-      <div id="feedbackSuccess" class="success-text hidden"></div>
-
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="cancelFeedbackBtn">Cancel</button>
-        <button class="btn btn-primary" id="submitFeedbackBtn">Send Feedback</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ABOUT MODAL -->
   <div class="modal-overlay" id="aboutModal">
     <div class="modal">
@@ -890,9 +804,6 @@
     var responseCache = {};
     var pendingAiPrompt = null;
     var layerSearchQuery = '';
-    // Supabase configuration – replace these placeholders at build time
-    var SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co';
-    var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'api-settings' } }, '*');
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'prompt-history' } }, '*');
@@ -907,7 +818,6 @@
     var menuPanel = document.getElementById('menuPanel');
     var menuItemSetup = document.getElementById('menuItemSetup');
     var menuItemHelp = document.getElementById('menuItemHelp');
-    var menuItemFeedback = document.getElementById('menuItemFeedback');
     var menuItemAbout = document.getElementById('menuItemAbout');
     var setupApiHomeBtn = document.getElementById('setupApiHomeBtn');
     var searchInput = document.getElementById('searchInput');
@@ -919,7 +829,6 @@
     // Modals
     var apiModal = document.getElementById('apiModal');
     var promptModal = document.getElementById('promptModal');
-    var feedbackModal = document.getElementById('feedbackModal');
     var aboutModal = document.getElementById('aboutModal');
     var providerSelect = document.getElementById('providerSelect');
     var apiKeyInput = document.getElementById('apiKeyInput');
@@ -933,10 +842,6 @@
     var aiUpgradeBar = document.getElementById('aiUpgradeBar');
     var viewAiBtn = document.getElementById('viewAiBtn');
     var aiStatusText = document.getElementById('aiStatusText');
-    var feedbackError = document.getElementById('feedbackError');
-    var feedbackSuccess = document.getElementById('feedbackSuccess');
-    var cancelFeedbackBtn = document.getElementById('cancelFeedbackBtn');
-    var submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
     var closeAboutBtn = document.getElementById('closeAboutBtn');
 
     // Navigation
@@ -1022,13 +927,6 @@
     if (menuItemHelp) {
       menuItemHelp.onclick = function() {
         closeMenu();
-      };
-    }
-
-    if (menuItemFeedback) {
-      menuItemFeedback.onclick = function() {
-        closeMenu();
-        openFeedbackModal();
       };
     }
 
@@ -1149,114 +1047,6 @@
         parent.postMessage({ pluginMessage: { type: 'notify', message: 'Copy failed' } }, '*');
       }
       document.body.removeChild(textarea);
-    };
-
-    // Feedback modal
-    function resetFeedbackForm() {
-      var inputs = feedbackModal.querySelectorAll('input[type="radio"], input[type="checkbox"]');
-      for (var i = 0; i < inputs.length; i++) {
-        inputs[i].checked = false;
-      }
-      var commentsEl = document.getElementById('feedbackComments');
-      var emailEl = document.getElementById('feedbackEmail');
-      if (commentsEl) commentsEl.value = '';
-      if (emailEl) emailEl.value = '';
-    }
-
-    function openFeedbackModal() {
-      feedbackError.classList.add('hidden');
-      feedbackSuccess.classList.add('hidden');
-      feedbackModal.classList.add('active');
-    }
-
-    function closeFeedbackModal() {
-      feedbackModal.classList.remove('active');
-      resetFeedbackForm();
-    }
-
-    cancelFeedbackBtn.onclick = function() {
-      closeFeedbackModal();
-    };
-
-    feedbackModal.onclick = function(e) {
-      if (e.target === feedbackModal) {
-        closeFeedbackModal();
-      }
-    };
-
-    submitFeedbackBtn.onclick = function() {
-      feedbackError.classList.add('hidden');
-      feedbackSuccess.classList.add('hidden');
-    
-      var experience = document.querySelector('input[name="feedbackExperience"]:checked');
-      var recommend = document.querySelector('input[name="feedbackRecommend"]:checked');
-    
-      if (!experience || !recommend) {
-        feedbackError.textContent = 'Please answer the required questions.';
-        feedbackError.classList.remove('hidden');
-        return;
-      }
-    
-      var usageNodes = document.querySelectorAll('input[name="feedbackUsage"]:checked');
-      var usage = [];
-      for (var i = 0; i < usageNodes.length; i++) {
-        usage.push(usageNodes[i].value);
-      }
-    
-      var comments = (document.getElementById('feedbackComments').value || '').trim();
-      var email = (document.getElementById('feedbackEmail').value || '').trim();
-    
-      var payload = {
-        experience: experience.value,
-        recommend: recommend.value,
-        usage: usage.join(', '),
-        comments: comments || null,
-        email: email || null
-      };
-
-      // If Supabase credentials are not configured (public GitHub build),
-      // show a friendly message instead of attempting a failing network call.
-      var hasRealSupabaseConfig =
-        SUPABASE_URL.indexOf('YOUR_SUPABASE_PROJECT_ID') === -1 &&
-        SUPABASE_ANON_KEY.indexOf('YOUR_SUPABASE_ANON_KEY') === -1;
-
-      if (!hasRealSupabaseConfig) {
-        feedbackError.textContent = 'Feedback sending is disabled in this public build.';
-        feedbackError.classList.remove('hidden');
-        return;
-      }
-    
-      submitFeedbackBtn.disabled = true;
-    
-      fetch(SUPABASE_URL + '/rest/v1/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(payload)
-      }).then(function(res) {
-        if (!res.ok) {
-          return res.text().then(function(text) {
-            throw new Error(text || ('Supabase error ' + res.status));
-          });
-        }
-      }).then(function() {
-        feedbackSuccess.textContent = 'Thanks for your feedback!';
-        feedbackSuccess.classList.remove('hidden');
-        parent.postMessage({ pluginMessage: { type: 'notify', message: 'Thanks for your feedback!' } }, '*');
-        setTimeout(function() {
-          closeFeedbackModal();
-        }, 1200);
-      }).catch(function(err) {
-        feedbackError.textContent = 'Could not send feedback: ' + (err.message || 'Please try again later.');
-        feedbackError.classList.remove('hidden');
-        console.error(err);
-      }).finally(function() {
-        submitFeedbackBtn.disabled = false;
-      });
     };
 
     // About modal
