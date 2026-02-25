@@ -891,8 +891,8 @@
     var pendingAiPrompt = null;
     var layerSearchQuery = '';
     // Supabase configuration – replace these placeholders at build time
-    var SUPABASE_URL = 'https://gdvzczwujkoxitpeuenx.supabase.co';
-    var SUPABASE_ANON_KEY = 'sb_publishable_zrDukCZVlAHI2P-f8PVkxQ_XqHPVcpf';
+    var SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co';
+    var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'api-settings' } }, '*');
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'prompt-history' } }, '*');
