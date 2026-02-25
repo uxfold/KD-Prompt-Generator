@@ -890,8 +890,9 @@
     var responseCache = {};
     var pendingAiPrompt = null;
     var layerSearchQuery = '';
-    var SUPABASE_URL = 'https://udeulspbicbybydzdgal.supabase.co';
-    var SUPABASE_ANON_KEY = 'sb_publishable_WJlZnGdbTHSh9t_63LrRtQ_18-pxjYz';
+    // Supabase configuration – replace these placeholders at build time
+    var SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co';
+    var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'api-settings' } }, '*');
     parent.postMessage({ pluginMessage: { type: 'storage-get', key: 'prompt-history' } }, '*');
@@ -1186,25 +1187,25 @@
     submitFeedbackBtn.onclick = function() {
       feedbackError.classList.add('hidden');
       feedbackSuccess.classList.add('hidden');
-
+    
       var experience = document.querySelector('input[name="feedbackExperience"]:checked');
       var recommend = document.querySelector('input[name="feedbackRecommend"]:checked');
-
+    
       if (!experience || !recommend) {
         feedbackError.textContent = 'Please answer the required questions.';
         feedbackError.classList.remove('hidden');
         return;
       }
-
+    
       var usageNodes = document.querySelectorAll('input[name="feedbackUsage"]:checked');
       var usage = [];
       for (var i = 0; i < usageNodes.length; i++) {
         usage.push(usageNodes[i].value);
       }
-
+    
       var comments = (document.getElementById('feedbackComments').value || '').trim();
       var email = (document.getElementById('feedbackEmail').value || '').trim();
-
+    
       var payload = {
         experience: experience.value,
         recommend: recommend.value,
@@ -1213,8 +1214,20 @@
         email: email || null
       };
 
-      submitFeedbackBtn.disabled = true;
+      // If Supabase credentials are not configured (public GitHub build),
+      // show a friendly message instead of attempting a failing network call.
+      var hasRealSupabaseConfig =
+        SUPABASE_URL.indexOf('YOUR_SUPABASE_PROJECT_ID') === -1 &&
+        SUPABASE_ANON_KEY.indexOf('YOUR_SUPABASE_ANON_KEY') === -1;
 
+      if (!hasRealSupabaseConfig) {
+        feedbackError.textContent = 'Feedback sending is disabled in this public build.';
+        feedbackError.classList.remove('hidden');
+        return;
+      }
+    
+      submitFeedbackBtn.disabled = true;
+    
       fetch(SUPABASE_URL + '/rest/v1/feedback', {
         method: 'POST',
         headers: {
@@ -1238,7 +1251,7 @@
           closeFeedbackModal();
         }, 1200);
       }).catch(function(err) {
-        feedbackError.textContent = 'Could not send feedback. Please try again later.';
+        feedbackError.textContent = 'Could not send feedback: ' + (err.message || 'Please try again later.');
         feedbackError.classList.remove('hidden');
         console.error(err);
       }).finally(function() {

@@ -5,11 +5,12 @@
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma"],
-  "networkAccess": {
-    "allowedDomains": [
-      "https://api.openai.com",
-      "https://generativelanguage.googleapis.com",
-      "https://api.anthropic.com"
-    ]
-  }
+"networkAccess": {
+  "allowedDomains": [
+    "https://api.openai.com",
+    "https://generativelanguage.googleapis.com",
+    "https://api.anthropic.com",
+    "https://gdvzczwujkoxitpeuenx.supabase.co"
+  ]
+}
 }
